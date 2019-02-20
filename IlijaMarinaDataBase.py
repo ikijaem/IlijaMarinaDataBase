@@ -3,6 +3,7 @@ import numpy as np
 import random
 from sklearn.metrics.pairwise import pairwise_distances, cosine_similarity
 from ContentBasedFiltering import ContentBasedFiltering
+from CollaborativeFIltering import CollaborativeFiltering
 
 
 #variables containg data
@@ -35,39 +36,11 @@ def randomizeMovieLikedByUser(ratings, user):
     movie_idx = random.randint(0, len(movs)-1)
     return movs[movie_idx]
 
-def getReccomendationsCollaborative(ratings, movies):
-    n_users = ratings.user_id.unique().shape[0]
-    n_movies = ratings.movie_id.unique().shape[0]
-    data_matrix = np.zeros((n_users, n_movies))
-    for line in ratings.itertuples():
-        data_matrix[line[1] - 1, line[2] - 1] = line[3]
-
-    similarity = cosine_similarity(data_matrix, data_matrix)
-
-    wh = np.array([np.abs(similarity).sum(axis=1)]).T
-
-    what = similarity.dot(data_matrix)/wh
-
-
-
-    predictions = pd.Series(what[0]).sort_values(ascending=False)
-
-
-    # get top 10 results
-    recommended_movies = []
-    for i in list(predictions.index):
-        recommended_movies.append(movies.at[i, 'movie_title'])
-        if (len(recommended_movies) == 10):
-            break;
-
-
 if __name__ == '__main__':
     users, ratings, movies = loadData();
 
     cbf = ContentBasedFiltering(movies)
-
-
-    #content based
+    cf = CollaborativeFiltering(ratings, movies)
 
     #naredne 4 linije, random biraju film za nekog random usera, i onda na osnovu tog filma ce mu preporuciti
     user_id = randomizeUser(users)
@@ -75,13 +48,9 @@ if __name__ == '__main__':
     movie_id = randomizeMovieLikedByUser(ratings, user_id)
     print(movie_id)
 
-    print (cbf.findRecommendations(movie_id))
+    #content based
+    #print (cbf.findRecommendations(movie_id))
 
-
-    #print(ratings.sort_values(by=['user_id']))
-    #print (getReccomendationsCollaborative(ratings, movies))
-
-
-
-
+    #collaborative
+    print (cf.findRecommendations(603, 'user'))
 
