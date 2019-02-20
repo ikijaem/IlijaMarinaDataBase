@@ -1,35 +1,52 @@
 import pandas as pd
-from sklearn.metrics.pairwise import pairwise_distances, cosine_similarity
+from sklearn.metrics.pairwise import cosine_similarity
 
 class ContentBasedFiltering:
 
-    def __init__(self, movies):
+    def __init__(self, movies, ratings):
 
         self.movies = movies
+        self.ratings = ratings
 
-        genres = movies[['Action',
+        self.genres = movies[['Action',
                         'Adventure',
                         'Animation', 'Children\'s', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy',
                         'Film-Noir', 'Horror', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War',
                         'Western']].copy()
 
-        self.matrix_similarity = cosine_similarity(genres, genres)
+    def getMoviesUserLiked(self, user):
+        self.ratings = self.ratings.sort_values(by='user_id')
+        temp = self.ratings.loc[self.ratings['user_id'] == user]
+        user_likes = temp.loc[temp['rating'] >= 3]
 
-        self.indexes = pd.Series(movies.index, index=movies['movie_id']).drop_duplicates()
+        return list(user_likes['movie_id'])
 
-    def findRecommendations(self, movie):
+    def findRecommendations(self, user):
 
         # get similarities with other movies of selected
+        movies_liked = self.getMoviesUserLiked(user)
+        matrix_liked = self.genres.loc[movies_liked]
 
-        index_od_movie = self.indexes[movie]
-        similarities = pd.Series(self.matrix_similarity[index_od_movie]).sort_values(ascending=False)
+        matrix = cosine_similarity(matrix_liked, self.genres)
+
+        similar_movies = []
+        #np.random.shuffle(matrix)
+        for i in range (0, len(matrix)):
+            all = pd.Series(matrix[i])
+
+            while all.idxmax() in movies_liked or all.idxmax() in similar_movies:
+                all = all.drop(all.idxmax())
+
+            similar_movies.append(all.idxmax())
+        similar_movies.sort(reverse=True)
 
         # get top 10 results
         recommended_movies = []
-        for i in list(similarities.index):
-            if (index_od_movie == i):
+
+        for i in range(len(similar_movies)):
+            if (i in movies_liked):
                 continue;
-            recommended_movies.append(self.movies.at[i, 'movie_title'])
+            recommended_movies.append(self.movies.at[similar_movies[i], 'movie_title'])
             if (len(recommended_movies) == 10):
                 break;
 

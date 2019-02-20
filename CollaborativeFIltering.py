@@ -23,7 +23,6 @@ class CollaborativeFiltering:
     def getMoviesUserRated(self, user):
         self.ratings = self.ratings.sort_values(by='user_id')
         user_ratings = self.ratings.loc[self.ratings['user_id'] == user]
-        #return user_ratings
 
         return list(user_ratings['movie_id'])
 

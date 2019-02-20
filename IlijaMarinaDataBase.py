@@ -39,7 +39,7 @@ def randomizeMovieLikedByUser(ratings, user):
 if __name__ == '__main__':
     users, ratings, movies = loadData();
 
-    cbf = ContentBasedFiltering(movies)
+    cbf = ContentBasedFiltering(movies, ratings)
     cf = CollaborativeFiltering(ratings, movies)
 
     #naredne 4 linije, random biraju film za nekog random usera, i onda na osnovu tog filma ce mu preporuciti
@@ -49,8 +49,10 @@ if __name__ == '__main__':
     print(movie_id)
 
     #content based
-    #print (cbf.findRecommendations(movie_id))
+    print (cbf.findRecommendations(user_id))
+
+    #print(ratings.loc[ratings['user_id']==928].sort_values(by='movie_id'))
 
     #collaborative
-    print (cf.findRecommendations(603, 'user'))
+    #print (cf.findRecommendations(603, 'user'))
 
