@@ -4,6 +4,7 @@ import random
 from sklearn.metrics.pairwise import pairwise_distances, cosine_similarity
 from ContentBasedFiltering import ContentBasedFiltering
 from CollaborativeFIltering import CollaborativeFiltering
+import math
 
 
 #variables containg data
@@ -36,6 +37,32 @@ def randomizeMovieLikedByUser(ratings, user):
     movie_idx = random.randint(0, len(movs)-1)
     return movs[movie_idx]
 
+def testCollaborative(ratings,movies,type):
+    head = ratings.head(50)
+
+    new_ratings = ratings.drop([0,49])
+    print(new_ratings.shape)
+    cf_fake = CollaborativeFiltering(new_ratings,movies)
+    fake_matrix=cf_fake.getPredictionMatrix(type)
+    print (fake_matrix)
+
+    sum_of_squares=0
+
+    for i in range(0,50):
+        real_rate=head.iloc[i]['rating']
+        id_user=head.iloc[i]['user_id']
+        id_movie=head.iloc[i]['movie_id']
+        if type == 'user':
+            fake_rate = round(fake_matrix[id_user - 1][id_movie - 1])
+        else:
+            fake_rate = round(fake_matrix[id_movie - 1][id_user - 1])
+
+        sum_of_squares=sum_of_squares+(fake_rate-real_rate)*(fake_rate-real_rate)
+
+
+    error = math.sqrt(sum_of_squares/50)
+    print(error)
+
 if __name__ == '__main__':
     users, ratings, movies = loadData();
 
@@ -49,7 +76,9 @@ if __name__ == '__main__':
     print(movie_id)
 
     #content based
-    print (cbf.findRecommendations(user_id))
+    #print (cbf.findRecommendations(user_id))
+
+
 
     #print(ratings.loc[ratings['user_id']==928].sort_values(by='movie_id'))
 
